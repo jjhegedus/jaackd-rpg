@@ -1,0 +1,33 @@
+{
+  "templates": [
+    "{name} has run {business} for {years} years, ever since {origin}. {personality_line} {hook}",
+    "Everyone in {town} knows {name}. {business} has been in {pronoun_pos} family for {years} years. {personality_line} {hook}",
+    "{name} came to {town} as a stranger and never left. {pronoun} bought {business} from the previous owner and hasn't looked back. {personality_line} {hook}"
+  ],
+  "origins": [
+    "inheriting it from a distant aunt",
+    "winning it in a card game",
+    "buying it with savings from years of travel",
+    "a partner convinced {pronoun} to settle down",
+    "fleeing a past {pronoun} doesn't speak of"
+  ],
+  "personality_lines": {
+    "brave":       "{pronoun_cap} has been known to throw out armed men with {pronoun_pos} bare hands.",
+    "cautious":    "{pronoun_cap} keeps a short blade under the bar, just in case.",
+    "greedy":      "The prices at {business} are fair — just barely.",
+    "generous":    "{pronoun_cap} has been known to let travelers sleep in the stable for free on cold nights.",
+    "curious":     "{pronoun_cap} listens more than most people realize.",
+    "suspicious":  "{pronoun_cap} trusts nobody who doesn't eat before they drink.",
+    "loyal":       "The regulars at {business} would do anything for {pronoun_obj}.",
+    "pious":       "{pronoun_cap} keeps a small shrine to the church behind the bar.",
+    "cynical":     "{pronoun_cap} has heard every hard-luck story twice.",
+    "cheerful":    "The warmth at {business} is as much {pronoun_pos} doing as the fire's."
+  },
+  "hooks": [
+    "Lately {pronoun} has been sleeping poorly — something about a guest who checked in three weeks ago and never left.",
+    "There's a room on the top floor {pronoun} won't rent out, and nobody asks why.",
+    "{pronoun_cap} owes a favor to someone {pronoun} hopes never collects.",
+    "A particular face has been watching {business} from across the square each evening.",
+    "The cellar goes deeper than the floor plan suggests."
+  ]
+}

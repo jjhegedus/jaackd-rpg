@@ -1,0 +1,33 @@
+{
+  "templates": [
+    "{name} has served {business} in {town} for {years} years. {pronoun_cap} came here {origin}. {personality_line} {hook}",
+    "The church has stood longer than anyone in {town} can remember, and {name} tends it as {pronoun} has tended every posting before. {personality_line} {hook}",
+    "{name} requested this posting. Whether it was penance, curiosity, or something else entirely is not spoken of. {personality_line} {hook}"
+  ],
+  "origins": [
+    "after a long posting in the capital",
+    "following a crisis of faith {pronoun} rarely discusses",
+    "at the request of the bishop, for reasons unstated",
+    "chasing a rumor that turned out to be true",
+    "as punishment for something {pronoun} considers unjust"
+  ],
+  "personality_lines": {
+    "pious":       "{pronoun_cap} prays at dawn, noon, and dusk without exception and judges no one who doesn't.",
+    "cynical":     "{pronoun_cap} has long suspected that faith and politics share more than the faithful like to admit.",
+    "generous":    "The door to the vestry is never locked, and travelers in need know it.",
+    "cautious":    "{pronoun_cap} chooses words the way a physician doses medicine — carefully, and not more than needed.",
+    "curious":     "{pronoun_pos} study is full of old manuscripts, half of which have nothing to do with scripture.",
+    "brave":       "{pronoun_cap} stood between the town and a levy of soldiers once. The soldiers backed down.",
+    "patient":     "{pronoun_cap} has heard confessions for {years} years. Nothing surprises {pronoun_obj} anymore.",
+    "melancholy":  "There is a grave in the churchyard that {pronoun} tends more carefully than the rest.",
+    "ambitious":   "{pronoun_cap} did not come to this posting to stay in it forever.",
+    "loyal":       "{pronoun_cap} knows every family in the parish, their histories, their griefs."
+  },
+  "hooks": [
+    "A letter arrived last week with no sender named. {pronoun_cap} has read it a dozen times and said nothing to anyone.",
+    "One of the old parish records has been tampered with. {pronoun_cap} noticed, but hasn't confronted anyone.",
+    "{pronoun_cap} knows something about the founding of {town} that isn't in any public account.",
+    "An old acquaintance from {pronoun_pos} previous posting has just arrived in {town}.",
+    "The crypt beneath the church has a door that predates the church itself."
+  ]
+}

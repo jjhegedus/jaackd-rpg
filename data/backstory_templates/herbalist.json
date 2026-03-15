@@ -1,0 +1,33 @@
+{
+  "templates": [
+    "{name} has practiced at {business} for {years} years. Half the town has been healed by {pronoun_obj} at some point; the other half is just waiting their turn. {personality_line} {hook}",
+    "People come to {name} when the church can't help and they can't afford to wait. {pronoun_cap} doesn't advertise. {personality_line} {hook}",
+    "{name} learned the trade {origin}. {pronoun_cap} settled in {town} when {pronoun} found what {pronoun} was looking for — or stopped running from it. {personality_line} {hook}"
+  ],
+  "origins": [
+    "from a grandmother who never wrote anything down",
+    "through years of study in a city apothecary",
+    "following an old healer across three countries",
+    "out of necessity, when there was no one else to do it",
+    "from books that aren't in any common library"
+  ],
+  "personality_lines": {
+    "curious":     "{pronoun_cap} is always drying something new from the fields, and not everything is strictly medicinal.",
+    "cautious":    "{pronoun_cap} will not give a remedy without knowing the full history first.",
+    "patient":     "{pronoun_cap} has sat with the dying when there was nothing else to offer. {pronoun_cap} does not consider it wasted time.",
+    "pious":       "{pronoun_cap} believes the body and the spirit are not easily separated, and treats accordingly.",
+    "cynical":     "{pronoun_cap} has seen enough 'miracle cures' to be skeptical of anything that promises too much.",
+    "brave":       "{pronoun_cap} has walked into plague houses when others refused.",
+    "melancholy":  "There are remedies {pronoun} knows that {pronoun} will not make, and {pronoun} doesn't explain why.",
+    "generous":    "The poor pay what they can. Children pay nothing.",
+    "suspicious":  "{pronoun_cap} is careful who {pronoun} sells certain preparations to.",
+    "ambitious":   "{pronoun_cap} is writing everything down. Someday it will be worth something."
+  },
+  "hooks": [
+    "Something is making the livestock ill on the edge of town. {pronoun_cap} has a theory, but it's one {pronoun} hopes is wrong.",
+    "{pronoun_cap} was visited recently by someone who knew things about {pronoun_obj} that {pronoun} thought were forgotten.",
+    "A remedy that shouldn't have failed — did. {pronoun_cap} has been trying to understand it for weeks.",
+    "{pronoun_cap} grows a plant in the back garden that {pronoun} has never identified. It predates {pronoun_pos} tenancy.",
+    "Someone has been asking around town about {pronoun_obj} specifically. Asking careful questions."
+  ]
+}

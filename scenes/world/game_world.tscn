@@ -1,0 +1,36 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/game_world.gd" id="1_gw"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
+
+[sub_resource type="ProceduralSkyMaterial" id="SkyMat"]
+ground_bottom_color = Color(0.12, 0.18, 0.07, 1.0)
+ground_horizon_color = Color(0.22, 0.32, 0.12, 1.0)
+
+[sub_resource type="Sky" id="Sky"]
+sky_material = SubResource("SkyMat")
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 2
+sky = SubResource("Sky")
+ambient_light_source = 3
+ambient_light_energy = 0.3
+fog_enabled = true
+fog_density = 0.00008
+fog_sky_affect = 0.3
+
+[node name="GameWorld" type="Node3D"]
+script = ExtResource("1_gw")
+
+[node name="Environment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="ChunksRoot" type="Node3D" parent="."]
+
+[node name="CharactersRoot" type="Node3D" parent="."]
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]

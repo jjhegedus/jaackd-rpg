@@ -1,0 +1,29 @@
+{
+  "name": "Play Jaack'd World",
+  "default_timeout_sec": 20,
+  "steps": [
+    {
+      "type": "wait_for",
+      "event": "bridge_ready",
+      "desc": "DebugBridge initializes"
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "MainMenu",
+      "desc": "Main menu loads (Jaack'd world should be auto-selected)"
+    },
+    {
+      "type": "cmd",
+      "desc": "Click Play",
+      "payload": {"cmd": "click", "target": "PlayBtn"}
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "GameWorld",
+      "desc": "Game world loads and player spawns",
+      "timeout_sec": 60
+    }
+  ]
+}

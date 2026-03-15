@@ -1,0 +1,26 @@
+{
+  "templates": [
+    "{name} has worked the forge at {business} since {pronoun} was old enough to hold a hammer — {years} years now. {personality_line} {hook}",
+    "The best ironwork in the region comes out of {name}'s shop. {pronoun_cap} doesn't advertise; the work speaks for itself. {personality_line} {hook}",
+    "{name} came to {town} as an apprentice to the old smith. When the master retired, {pronoun} took over without ceremony. {personality_line} {hook}"
+  ],
+  "personality_lines": {
+    "brave":       "There are stories about {pronoun_obj} turning away a tax collector at sword-point. {pronoun_cap} neither confirms nor denies them.",
+    "cautious":    "{pronoun_cap} inspects every weld twice. A blade that fails its owner is a failure of the maker.",
+    "greedy":      "{pronoun_cap} will work for anyone with coin. Politics are not {pronoun_pos} concern.",
+    "generous":    "{pronoun_cap} has repaired tools for farmers on bad harvests and asked nothing in return.",
+    "curious":     "{pronoun_cap} is always trying something new — alloys, tempering methods, strange designs from old books.",
+    "suspicious":  "{pronoun_cap} asks what the blade is for before agreeing to make it.",
+    "loyal":       "Half the guard's weapons were made by {pronoun_obj}, and {pronoun} expects them to remember that.",
+    "pious":       "The horseshoe over {pronoun_pos} door has hung there since the forge was first lit.",
+    "cynical":     "{pronoun_cap} has seen enough to know that a good sword rarely prevents a bad war.",
+    "hot-tempered":"{pronoun_pos} apprentices learn quickly not to question {pronoun_obj} in front of customers."
+  },
+  "hooks": [
+    "A recent order came in for a weapon {pronoun} has never been asked to make before. {pronoun_cap} took the coin and has been uneasy since.",
+    "{pronoun_cap} found something in the old forge's foundation when {pronoun} was re-laying the stones. {pronoun_cap} sealed it back up.",
+    "An old debt is coming due — the kind measured in favors, not gold.",
+    "{pronoun_cap} recognizes the insignia on a recent traveler's scabbard and hasn't said anything yet.",
+    "The forge has been running hot for a week. {pronoun_cap} doesn't know why."
+  ]
+}

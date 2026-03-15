@@ -1,0 +1,26 @@
+{
+  "templates": [
+    "{name} has worked the stable in {town} for {years} years. {pronoun_cap} knows more about the horses passing through than about the people riding them, which suits {pronoun_obj} fine. {personality_line} {hook}",
+    "Ask {name} about an animal and {pronoun} will talk for an hour. Ask about people and {pronoun} will give you a shrug and a price. {personality_line} {hook}",
+    "{name} came to this work after a riding accident that ended a different career. {pronoun_cap} doesn't elaborate. {personality_line} {hook}"
+  ],
+  "personality_lines": {
+    "cautious":    "{pronoun_cap} checks every horse's shoes before taking the animal in. A lame horse is everyone's problem.",
+    "loyal":       "The animals in {pronoun_pos} care eat before {pronoun} does.",
+    "curious":     "{pronoun_cap} can tell a horse's origin, breeding, and recent treatment from a five-minute inspection.",
+    "cynical":     "{pronoun_cap} judges a person's character by how they treat their horse. Most people don't come out well.",
+    "cheerful":    "{pronoun_cap} talks to the animals. The animals, {pronoun} maintains, talk back.",
+    "patient":     "A spooked horse will calm down. {pronoun_cap} has never found one that didn't, given enough time.",
+    "brave":       "{pronoun_cap} pulled two horses from a stable fire with {pronoun_pos} bare hands. {pronoun_cap} rarely mentions it.",
+    "generous":    "Travelers who look genuinely poor sometimes find their animal has been fed and watered for free.",
+    "suspicious":  "{pronoun_cap} remembers every horse that has come through and where it went.",
+    "melancholy":  "There is a particular stall {pronoun} keeps empty. {pronoun_cap} won't say why."
+  },
+  "hooks": [
+    "A horse was left here two weeks ago with full payment and no return date. The owner has not come back.",
+    "{pronoun_cap} noticed unusual marks on a recent traveler's horse — military brands that shouldn't be this far from the capital.",
+    "Something has been getting into the stable at night. No animal is missing. Nothing is disturbed. But something has been there.",
+    "{pronoun_cap} overheard a conversation {pronoun} wasn't meant to while mucking out the far stall.",
+    "A horse arrived last week that {pronoun} recognizes — but its rider is someone {pronoun} has never seen before."
+  ]
+}

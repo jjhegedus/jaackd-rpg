@@ -1,8 +1,3 @@
-# jaackd-rpg
-JAACK'D RPG Game
-
----
-
 # jaackd-rpg — Claude Code Guide
 
 ## Project Overview

@@ -1,0 +1,27 @@
+{
+  "templates": [
+    "{name} runs {business} with the efficiency of someone who has calculated exactly what {pronoun} can afford to lose. {personality_line} {hook}",
+    "Ask {name} the price of anything in {town} and {pronoun} will tell you. Ask the price of anything outside it and {pronoun} will probably still tell you. {personality_line} {hook}",
+    "{name} took over {business} from {pronoun_pos} {predecessor} {years} years ago and has not stopped working since. {personality_line} {hook}"
+  ],
+  "predecessors": ["parent", "uncle", "mentor", "the previous owner who left abruptly"],
+  "personality_lines": {
+    "greedy":      "{pronoun_cap} knows the value of everything and charges just under what the market will bear.",
+    "generous":    "{pronoun_cap} extends quiet credit to families who've hit hard times and rarely mentions it.",
+    "curious":     "{pronoun_pos} back room holds oddities from a dozen regions — not for sale, just interesting.",
+    "suspicious":  "{pronoun_cap} weighs every coin personally.",
+    "loyal":       "Regular customers get better prices. Irregular ones eventually become regular.",
+    "cautious":    "{pronoun_cap} keeps no large sums on the premises overnight.",
+    "cheerful":    "Nobody leaves {business} without hearing a joke, whether they wanted one or not.",
+    "cynical":     "{pronoun_cap} has been shortchanged, robbed, and swindled enough times to have an opinion about human nature.",
+    "ambitious":   "{pronoun_cap} has plans to expand. {pronoun_cap} is always waiting for the right moment.",
+    "patient":     "{pronoun_cap} can haggle for hours and still seem like {pronoun} is enjoying it."
+  },
+  "hooks": [
+    "A shipment of goods arrived last month that {pronoun} didn't order. {pronoun_cap} has quietly been trying to find out where it came from.",
+    "{pronoun_cap} is owed a significant sum by someone in town, and the patience is running out.",
+    "Someone has been placing orders under a false name and always sending a third party to collect.",
+    "{pronoun_cap} once handled goods for people {pronoun} would rather forget. One of them may be in {town}.",
+    "The inventory never quite matches the ledger. Not by much. But consistently."
+  ]
+}

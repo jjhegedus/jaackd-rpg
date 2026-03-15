@@ -1,0 +1,214 @@
+[gd_scene format=3 uid="uid://cyyimapilbwdp"]
+
+[ext_resource type="Script" uid="uid://6ujbsgx8hii4" path="res://scenes/world_forge/world_forge_ui.gd" id="1_22oiq"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_wwn6r"]
+
+[node name="WorldForge" type="Control" unique_id=520129816]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_22oiq")
+
+[node name="SetupPanel" type="VBoxContainer" parent="." unique_id=1369646289]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="WorldNameInput" type="LineEdit" parent="SetupPanel"]
+layout_mode = 2
+placeholder_text = "World name"
+
+[node name="TownNameInput" type="LineEdit" parent="SetupPanel"]
+layout_mode = 2
+placeholder_text = "Starting town name"
+
+[node name="SeedLabel" type="Label" parent="SetupPanel"]
+layout_mode = 2
+text = "World Seed"
+
+[node name="SeedInput" type="SpinBox" parent="SetupPanel"]
+layout_mode = 2
+max_value = 2147483647.0
+
+[node name="RandomizeSeedBtn" type="Button" parent="SetupPanel"]
+layout_mode = 2
+text = "Randomize Seed"
+
+[node name="ForgeBtn" type="Button" parent="SetupPanel"]
+layout_mode = 2
+text = "Forge World"
+
+[node name="DiskLabel" type="Label" parent="SetupPanel"]
+layout_mode = 2
+text = "Free disk: …"
+
+[node name="BackBtn" type="Button" parent="SetupPanel"]
+layout_mode = 2
+text = "< Main Menu"
+
+[node name="ForgePanel" type="VBoxContainer" parent="." unique_id=706658142]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="BackBtn" type="Button" parent="ForgePanel"]
+layout_mode = 2
+text = "< Main Menu"
+
+[node name="ProgressBar" type="ProgressBar" parent="ForgePanel"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label" parent="ForgePanel"]
+layout_mode = 2
+text = "Ready."
+
+[node name="PlanetPreview" type="SubViewportContainer" parent="ForgePanel" unique_id=1733388884]
+layout_mode = 2
+custom_minimum_size = Vector2(400, 400)
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="ForgePanel/PlanetPreview" unique_id=655672820]
+size = Vector2i(400, 400)
+
+[node name="PlanetViewport" type="Node3D" parent="ForgePanel/PlanetPreview/SubViewport" unique_id=510425145]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ForgePanel/PlanetPreview/SubViewport/PlanetViewport" unique_id=2107747416]
+mesh = SubResource("SphereMesh_wwn6r")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="ForgePanel/PlanetPreview/SubViewport/PlanetViewport" unique_id=981277672]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="Camera3D" type="Camera3D" parent="ForgePanel/PlanetPreview/SubViewport/PlanetViewport" unique_id=497495510]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3)
+
+[node name="PeoplePanel" type="VBoxContainer" parent="." unique_id=1990439264]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="NavBar" type="HBoxContainer" parent="PeoplePanel"]
+layout_mode = 2
+
+[node name="PeopleToSetupBtn" type="Button" parent="PeoplePanel/NavBar"]
+layout_mode = 2
+text = "Save & Exit"
+
+[node name="PeopleToCreaturesBtn" type="Button" parent="PeoplePanel/NavBar"]
+layout_mode = 2
+text = "Creatures >"
+
+[node name="AddPersonBtn" type="Button" parent="PeoplePanel"]
+layout_mode = 2
+text = "Add Person"
+
+[node name="PeopleList" type="ItemList" parent="PeoplePanel"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 160)
+
+[node name="Scroll" type="ScrollContainer" parent="PeoplePanel"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharacterEditor" type="VBoxContainer" parent="PeoplePanel/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NameInput" type="LineEdit" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+placeholder_text = "Name"
+
+[node name="AgeInput" type="SpinBox" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+max_value = 120.0
+value = 25.0
+
+[node name="RoleOption" type="OptionButton" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+
+[node name="SelectableCheck" type="CheckBox" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+button_pressed = true
+text = "Player selectable"
+
+[node name="BackstorySeedLabel" type="TextEdit" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+editable = false
+placeholder_text = "Generated backstory"
+
+[node name="BackstoryOverrideInput" type="TextEdit" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+placeholder_text = "Override backstory (replaces generated)"
+
+[node name="BackstoryNotesInput" type="TextEdit" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+placeholder_text = "WM notes (appended)"
+
+[node name="GenBackstoryBtn" type="Button" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+text = "Generate Backstory"
+
+[node name="ApplyBtn" type="Button" parent="PeoplePanel/Scroll/CharacterEditor"]
+layout_mode = 2
+text = "Apply Changes"
+
+[node name="CreaturesPanel" type="VBoxContainer" parent="." unique_id=150508373]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+visible = false
+
+[node name="NavBar" type="HBoxContainer" parent="CreaturesPanel"]
+layout_mode = 2
+
+[node name="CreaturesToSetupBtn" type="Button" parent="CreaturesPanel/NavBar"]
+layout_mode = 2
+text = "Save & Exit"
+
+[node name="CreaturesToPeopleBtn" type="Button" parent="CreaturesPanel/NavBar"]
+layout_mode = 2
+text = "< People"
+
+[node name="AddCreatureBtn" type="Button" parent="CreaturesPanel"]
+layout_mode = 2
+text = "Add Creature Type"
+
+[node name="CreatureList" type="ItemList" parent="CreaturesPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+custom_minimum_size = Vector2(0, 160)
+
+[node name="CreatureEditor" type="VBoxContainer" parent="CreaturesPanel"]
+layout_mode = 2
+
+[node name="NameInput" type="LineEdit" parent="CreaturesPanel/CreatureEditor"]
+layout_mode = 2
+placeholder_text = "Creature type name"
+
+[node name="HumanoidCheck" type="CheckBox" parent="CreaturesPanel/CreatureEditor"]
+layout_mode = 2
+text = "Humanoid"
+
+[node name="ViewshedInput" type="SpinBox" parent="CreaturesPanel/CreatureEditor"]
+layout_mode = 2
+max_value = 10000.0
+value = 80.0
+suffix = "m"
+
+[node name="DescInput" type="TextEdit" parent="CreaturesPanel/CreatureEditor"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+placeholder_text = "Description"

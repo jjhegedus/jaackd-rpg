@@ -1,0 +1,17 @@
+{
+  "name": "Main Menu Smoke Test",
+  "default_timeout_sec": 15,
+  "steps": [
+    {
+      "type": "wait_for",
+      "event": "bridge_ready",
+      "desc": "DebugBridge initializes"
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "MainMenu",
+      "desc": "Main menu loads and reports available actions"
+    }
+  ]
+}

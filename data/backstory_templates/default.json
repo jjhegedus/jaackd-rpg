@@ -1,0 +1,31 @@
+{
+  "templates": [
+    "{name} has lived in {town} for {years} years. {personality_line} {hook}",
+    "Not much is said about {name} in {town}, which is either because there is nothing to say or because {pronoun} prefers it that way. {personality_line} {hook}",
+    "{name} arrived in {town} {years} years ago and never left, though {pronoun} sometimes looks like {pronoun} is still deciding. {personality_line} {hook}"
+  ],
+  "personality_lines": {
+    "brave":       "{pronoun_cap} is the kind of person others look to when things go wrong.",
+    "cautious":    "{pronoun_cap} watches the road from {pronoun_pos} doorstep each evening.",
+    "greedy":      "{pronoun_cap} knows the value of what {pronoun} has and what {pronoun} doesn't.",
+    "generous":    "{pronoun_cap} helps where {pronoun} can, and doesn't keep count of it.",
+    "curious":     "{pronoun_cap} asks more questions than most people like.",
+    "suspicious":  "{pronoun_cap} is slow to trust and careful about it.",
+    "loyal":       "The people {name} calls friends are few, but certain of it.",
+    "mercenary":   "{pronoun_cap} has a practical view of obligation.",
+    "pious":       "{pronoun_cap} attends services without fail and takes it seriously.",
+    "cynical":     "{pronoun_cap} has seen enough to have formed opinions, and has mostly stopped sharing them.",
+    "cheerful":    "{pronoun_cap} gets on with things and doesn't make much of difficulties.",
+    "melancholy":  "There is a loss somewhere in {pronoun_pos} past that still shows if you know to look.",
+    "hot-tempered":"{pronoun_cap} is slow to anger but quick once there.",
+    "patient":     "{pronoun_cap} waits. People find this either reassuring or unsettling.",
+    "ambitious":   "{pronoun_cap} has plans that {town} may not be large enough for."
+  },
+  "hooks": [
+    "{pronoun_cap} saw something last month that {pronoun} hasn't told anyone.",
+    "An old connection has shown up in {town} and it's unclear if {pronoun} is glad about it.",
+    "{pronoun_cap} knows something about someone else in {town} and wonders sometimes whether to say it.",
+    "Something has changed recently in how {pronoun} acts, and {pronoun_pos} closer neighbors have noticed.",
+    "{pronoun_cap} is waiting for something. {pronoun_cap} hasn't said what."
+  ]
+}

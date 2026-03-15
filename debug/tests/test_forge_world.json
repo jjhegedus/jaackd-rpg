@@ -1,0 +1,72 @@
+{
+  "name": "World Forge Smoke Test",
+  "default_timeout_sec": 30,
+  "steps": [
+    {
+      "type": "wait_for",
+      "event": "bridge_ready",
+      "desc": "DebugBridge initializes"
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "MainMenu",
+      "desc": "Main menu loads"
+    },
+    {
+      "type": "cmd",
+      "desc": "Open World Forge (new world)",
+      "payload": {"cmd": "click", "target": "ForgeBtn"}
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "WorldForge",
+      "panel": "SetupPanel",
+      "desc": "World Forge setup panel is ready"
+    },
+    {
+      "type": "cmd",
+      "desc": "Enter world name",
+      "payload": {"cmd": "set_text", "target": "WorldNameInput", "value": "BridgeTest"}
+    },
+    {
+      "type": "cmd",
+      "desc": "Enter town name",
+      "payload": {"cmd": "set_text", "target": "TownNameInput", "value": "Testburgh"}
+    },
+    {
+      "type": "cmd",
+      "desc": "Start forge",
+      "payload": {"cmd": "click", "target": "ForgeBtn"}
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "WorldForge",
+      "panel": "ForgePanel",
+      "desc": "Forge progress panel appears",
+      "timeout_sec": 10
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "WorldForge",
+      "panel": "PeoplePanel",
+      "desc": "People panel appears after forge completes",
+      "timeout_sec": 180
+    },
+    {
+      "type": "cmd",
+      "desc": "Save and return to main menu",
+      "payload": {"cmd": "click", "target": "PeopleToSetupBtn"}
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "MainMenu",
+      "desc": "Main menu returns after save",
+      "timeout_sec": 15
+    }
+  ]
+}

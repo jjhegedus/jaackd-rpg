@@ -4,9 +4,10 @@ extends Control
 # Entry point for the application.
 #
 # On launch:
-#   - Checks whether any valid world exists in user://worlds/
-#   - If no world: Play is disabled; only World Forge is available
-#   - If a world exists: both options are available
+#   - If no save directory is configured, prompts the user to choose one.
+#   - Checks whether any valid world exists in the configured save directory.
+#   - If no world: Play is disabled; only World Forge is available.
+#   - If a world exists: both options are available.
 #
 # Play launches the session setup screen (character selection).
 # World Forge opens the world creation tool.
@@ -25,6 +26,7 @@ const GAME_WORLD_SCENE  := "res://scenes/world/game_world.tscn"
 
 var _worlds: Array = []   # Array of DiskManager.WorldEntry
 var _selected_world: String = ""
+var _folder_dialog: FileDialog = null
 
 
 func _ready() -> void:
@@ -35,12 +37,53 @@ func _ready() -> void:
 	delete_btn.pressed.connect(_on_delete)
 	world_list.item_selected.connect(_on_world_selected)
 
+	DiskManager.save_dir_needed.connect(_on_save_dir_needed)
+
+	if DiskManager.has_save_dir():
+		_refresh_world_list()
+	else:
+		_request_save_dir()
+
+
+func _request_save_dir() -> void:
+	world_status.text = "Choose a folder where your worlds will be saved."
+	play_btn.disabled  = true
+	forge_btn.disabled = true
+
+	if _folder_dialog == null:
+		_folder_dialog = FileDialog.new()
+		_folder_dialog.file_mode  = FileDialog.FILE_MODE_OPEN_DIR
+		_folder_dialog.access     = FileDialog.ACCESS_FILESYSTEM
+		_folder_dialog.title      = "Choose Save Folder"
+		_folder_dialog.dir_selected.connect(_on_save_dir_chosen)
+		_folder_dialog.canceled.connect(_on_save_dir_canceled)
+		add_child(_folder_dialog)
+
+	_folder_dialog.popup_centered_ratio(0.6)
+
+
+func _on_save_dir_needed() -> void:
+	_request_save_dir()
+
+
+func _on_save_dir_chosen(path: String) -> void:
+	var err := DiskManager.set_save_dir(path)
+	if err != OK:
+		world_status.text = "Could not use that folder (error %d). Please try another." % err
+		_request_save_dir()
+		return
+	forge_btn.disabled = false
 	_refresh_world_list()
+
+
+func _on_save_dir_canceled() -> void:
+	world_status.text = "A save folder is required to play. Press Forge to get started."
+	forge_btn.disabled = false   # still allow forging — it will re-trigger the dialog
 
 
 func _notify_screen_ready() -> void:
 	if OS.is_debug_build():
-		DebugBridge.screen_ready("MainMenu", "", [
+		DebugBridge.screen_ready("MainMenu", "save_dir:%s" % DiskManager._save_dir, [
 			{"id": "PlayBtn",   "node": play_btn},
 			{"id": "ForgeBtn",  "node": forge_btn},
 			{"id": "EditBtn",   "node": edit_btn},

@@ -1,0 +1,12 @@
+[configuration]
+entry_symbol = "viewshed_library_init"
+compatibility_minimum = "4.1"
+reloadable = false
+
+[libraries]
+windows.debug.x86_64   = "res://extension/bin/libviewshed.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "res://extension/bin/libviewshed.windows.template_release.x86_64.dll"
+linux.debug.x86_64     = "res://extension/bin/libviewshed.linux.template_debug.x86_64.so"
+linux.release.x86_64   = "res://extension/bin/libviewshed.linux.template_release.x86_64.so"
+macos.debug             = "res://extension/bin/libviewshed.macos.template_debug.framework"
+macos.release           = "res://extension/bin/libviewshed.macos.template_release.framework"

@@ -12,7 +12,7 @@ extends Node3D
 
 signal ground_chunk_changed(face: int, chunk_x: int, chunk_y: int)
 
-const MIN_HEIGHT   := 30.0
+const MIN_HEIGHT   := 1.7
 const MAX_HEIGHT   := 4000.0
 const MIN_PITCH    := -85.0   # near-overhead
 const MAX_PITCH    :=  80.0   # looking up past horizontal

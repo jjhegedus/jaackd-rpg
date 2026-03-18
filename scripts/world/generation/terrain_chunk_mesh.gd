@@ -10,14 +10,14 @@ extends RefCounted
 # Vertex colours encode a smooth height-based gradient (sea-level-relative).
 
 # Altitude stops for colour gradient (metres above sea level = 0)
-const _STOPS: Array = [-200.0, 0.0, 4.0, 40.0, 600.0, 1200.0, 2600.0]
+const _STOPS: Array = [-200.0, 0.0, 4.0, 40.0, 1100.0, 2200.0, 3500.0]
 const _COLORS: Array = [
 	Color(0.04, 0.12, 0.55),  # deep ocean
 	Color(0.10, 0.45, 0.85),  # shallow water
 	Color(0.90, 0.82, 0.45),  # sand / coast
 	Color(0.18, 0.72, 0.12),  # lowland grass
-	Color(0.40, 0.62, 0.18),  # highland meadow
-	Color(0.62, 0.42, 0.22),  # bare rock
+	Color(0.22, 0.58, 0.10),  # highland meadow (stays green to ~1100 m)
+	Color(0.55, 0.38, 0.20),  # bare rock
 	Color(0.95, 0.97, 1.00),  # snow / ice
 ]
 

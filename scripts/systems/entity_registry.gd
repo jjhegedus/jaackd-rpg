@@ -19,6 +19,7 @@ signal entity_unregistered(character_id: int)
 signal position_updated(character_id: int, world_pos: Vector3)
 signal selection_changed(character_id: int, is_selected: bool)
 signal zoom_group_changed(character_id: int, in_zoom: bool)
+signal faction_changed(character_id: int, faction: StringName)
 
 # -----------------------------------------------------------------------
 # Inner type
@@ -51,6 +52,14 @@ func register(character_id: int, world_pos: Vector3, faction: StringName) -> voi
 	rec.faction = faction
 	_entities[character_id] = rec
 	entity_registered.emit(character_id)
+
+
+func set_faction(character_id: int, new_faction: StringName) -> void:
+	var rec := _entities.get(character_id) as EntityRecord
+	if rec == null or rec.faction == new_faction:
+		return
+	rec.faction = new_faction
+	faction_changed.emit(character_id, new_faction)
 
 
 func unregister(character_id: int) -> void:
@@ -159,7 +168,7 @@ func get_player_bounds() -> AABB:
 	var positions: Array[Vector3] = []
 	for id in _entities:
 		var rec := _entities[id] as EntityRecord
-		if rec.faction == &"player":
+		if rec.faction == &"player_party":
 			positions.append(rec.world_pos)
 	return _positions_to_aabb(positions)
 
@@ -193,7 +202,7 @@ func get_ids_by_faction(faction: StringName) -> Array[int]:
 
 
 func get_player_ids() -> Array[int]:
-	return get_ids_by_faction(&"player")
+	return get_ids_by_faction(&"player_party")
 
 
 func get_enemy_ids() -> Array[int]:
@@ -250,7 +259,7 @@ func get_player_positions() -> Array[Vector3]:
 	var result: Array[Vector3] = []
 	for id in _entities:
 		var rec := _entities[id] as EntityRecord
-		if rec.faction == &"player":
+		if rec.faction == &"player_party":
 			result.append(rec.world_pos)
 	return result
 

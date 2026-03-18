@@ -56,4 +56,4 @@ static func load_from(path: String) -> WorldManifest:
 
 
 func get_save_path() -> String:
-	return "user://worlds/%s/world_manifest.tres" % world_name
+	return DiskManager.manifest_path(world_name)

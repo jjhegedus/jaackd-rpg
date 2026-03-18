@@ -2,11 +2,89 @@ extends Node
 
 signal low_disk_warning(free_fraction: float)
 signal write_refused(reason: String)
+signal save_dir_needed   # Emitted when a save path is required but none is configured.
+						 # UI should respond by calling set_save_dir().
 
 const MIN_FREE_FRACTION := 0.25
-const WORLDS_BASE_PATH := "user://worlds/"
+const CONFIG_FILENAME   := "jaackd_rpg.cfg"
+const CONFIG_SECTION    := "storage"
+const CONFIG_KEY_DIR    := "save_directory"
 
-# --- Disk space checks ---
+var _save_dir: String = ""   # Absolute path, trailing slash. Empty = not yet configured.
+
+
+# -----------------------------------------------------------------------
+# Lifecycle
+# -----------------------------------------------------------------------
+
+func _ready() -> void:
+	_estimate_total_disk()
+	_load_config()
+
+
+# -----------------------------------------------------------------------
+# Save directory
+# -----------------------------------------------------------------------
+
+func has_save_dir() -> bool:
+	return not _save_dir.is_empty()
+
+
+## Set and persist the user's chosen save directory.
+## Creates the directory if it does not yet exist.
+func set_save_dir(path: String) -> Error:
+	var normalised := path.rstrip("/\\") + "/"
+	var err := DirAccess.make_dir_recursive_absolute(normalised)
+	if err != OK:
+		push_error("DiskManager: could not create save directory '%s': %s" % [normalised, error_string(err)])
+		return err
+	_save_dir = normalised
+	_save_config()
+	return OK
+
+
+## Returns the worlds root directory, or emits save_dir_needed and returns ""
+## if no save directory has been configured yet.
+func worlds_dir() -> String:
+	if _save_dir.is_empty():
+		save_dir_needed.emit()
+		return ""
+	return _save_dir + "worlds/"
+
+
+func world_dir(world_name: String) -> String:
+	var base := worlds_dir()
+	if base.is_empty():
+		return ""
+	return base + world_name + "/"
+
+
+func chunks_dir(world_name: String) -> String:
+	var base := world_dir(world_name)
+	if base.is_empty():
+		return ""
+	return base + "chunks/"
+
+
+func manifest_path(world_name: String) -> String:
+	var base := world_dir(world_name)
+	if base.is_empty():
+		return ""
+	return base + "world_manifest.tres"
+
+
+func ensure_world_dir(world_name: String) -> Error:
+	var path := chunks_dir(world_name)
+	if path.is_empty():
+		return ERR_UNCONFIGURED
+	if not DirAccess.dir_exists_absolute(path):
+		return DirAccess.make_dir_recursive_absolute(path)
+	return OK
+
+
+# -----------------------------------------------------------------------
+# Disk space checks
+# -----------------------------------------------------------------------
 
 func get_free_bytes() -> int:
 	# TODO: Godot 4 has no cross-platform free-space API in GDScript.
@@ -21,13 +99,7 @@ func get_total_bytes() -> int:
 var _estimated_total: int = 0
 
 
-func _ready() -> void:
-	_estimate_total_disk()
-
-
 func _estimate_total_disk() -> void:
-	# Godot 4 has no cross-platform API for total disk size.
-	# Heuristic: assume at least 10 GB is used on the drive beyond current free space.
 	var free := get_free_bytes()
 	_estimated_total = free + 10 * 1024 * 1024 * 1024
 
@@ -42,7 +114,6 @@ func can_write(estimated_bytes: int) -> bool:
 	var free := get_free_bytes()
 	var after_write := free - estimated_bytes
 	if _estimated_total <= 0:
-		# Unknown total — only refuse if free space itself is very low (< 1 GB)
 		if after_write < 1 * 1024 * 1024 * 1024:
 			write_refused.emit("Less than 1 GB remaining after write.")
 			return false
@@ -58,32 +129,9 @@ func can_write(estimated_bytes: int) -> bool:
 	return true
 
 
-# --- World directory helpers ---
-
-func worlds_dir() -> String:
-	return WORLDS_BASE_PATH
-
-
-func world_dir(world_name: String) -> String:
-	return WORLDS_BASE_PATH + world_name + "/"
-
-
-func chunks_dir(world_name: String) -> String:
-	return world_dir(world_name) + "chunks/"
-
-
-func manifest_path(world_name: String) -> String:
-	return world_dir(world_name) + "world_manifest.tres"
-
-
-func ensure_world_dir(world_name: String) -> Error:
-	var path := chunks_dir(world_name)
-	if not DirAccess.dir_exists_absolute(path):
-		return DirAccess.make_dir_recursive_absolute(path)
-	return OK
-
-
-# --- World enumeration ---
+# -----------------------------------------------------------------------
+# World enumeration
+# -----------------------------------------------------------------------
 
 class WorldEntry:
 	var name: String
@@ -96,7 +144,10 @@ class WorldEntry:
 
 func list_worlds() -> Array[WorldEntry]:
 	var entries: Array[WorldEntry] = []
-	var dir := DirAccess.open(WORLDS_BASE_PATH)
+	var base := worlds_dir()
+	if base.is_empty():
+		return entries
+	var dir := DirAccess.open(base)
 	if dir == null:
 		return entries
 	dir.list_dir_begin()
@@ -120,8 +171,42 @@ func list_worlds() -> Array[WorldEntry]:
 
 func delete_world(world_name: String) -> Error:
 	var path := world_dir(world_name)
+	if path.is_empty():
+		return ERR_UNCONFIGURED
 	return _delete_dir_recursive(path)
 
+
+# -----------------------------------------------------------------------
+# Config persistence (stored next to the executable, not in AppData)
+# -----------------------------------------------------------------------
+
+func _config_path() -> String:
+	if OS.is_debug_build():
+		return ProjectSettings.globalize_path("res://") + CONFIG_FILENAME
+	return OS.get_executable_path().get_base_dir() + "/" + CONFIG_FILENAME
+
+
+func _load_config() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(_config_path()) != OK:
+		return
+	var val: String = cfg.get_value(CONFIG_SECTION, CONFIG_KEY_DIR, "")
+	if not val.is_empty():
+		_save_dir = val.rstrip("/\\") + "/"
+
+
+func _save_config() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(_config_path())   # preserve any other keys that may exist
+	cfg.set_value(CONFIG_SECTION, CONFIG_KEY_DIR, _save_dir)
+	var err := cfg.save(_config_path())
+	if err != OK:
+		push_error("DiskManager: could not write config to '%s': %s" % [_config_path(), error_string(err)])
+
+
+# -----------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------
 
 func _dir_size_bytes(path: String) -> int:
 	var total := 0

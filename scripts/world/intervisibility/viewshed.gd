@@ -28,6 +28,13 @@ static func compute(
 		max_range_cells: int,
 		cell_size_m: float = 4.0) -> PackedByteArray:
 
+	# Delegate to native C++ implementation when available (~10-50x faster).
+	if ClassDB.class_exists(&"ViewshedNative"):
+		return ViewshedNative.compute(
+			heightmap, width, height,
+			obs_x, obs_y,
+			obs_height_offset, max_range_cells, cell_size_m)
+
 	var result := PackedByteArray()
 	result.resize(width * height)
 	result.fill(0)
@@ -44,15 +51,21 @@ static func compute(
 	var x_min := maxi(0, obs_x - max_range_cells)
 	var x_max := mini(width - 1, obs_x + max_range_cells)
 
+	# Cells within this radius are always visible — prevents the R3 staircase
+	# artifact where adjacent cells near the observer are incorrectly blocked due
+	# to too few ray-march samples.
+	const GUARANTEED_VISIBLE_R2 := 9  # 3-cell radius squared
+
 	for ty in range(y_min, y_max + 1):
 		for tx in range(x_min, x_max + 1):
 			if tx == obs_x and ty == obs_y:
 				continue
 			var dx := tx - obs_x
 			var dy := ty - obs_y
-			if dx * dx + dy * dy > max_r2:
+			var r2 := dx * dx + dy * dy
+			if r2 > max_r2:
 				continue
-			if _has_los(heightmap, width, height,
+			if r2 <= GUARANTEED_VISIBLE_R2 or _has_los(heightmap, width, height,
 					obs_x, obs_y, obs_h, tx, ty, cell_size_m):
 				result[ty * width + tx] = 1
 

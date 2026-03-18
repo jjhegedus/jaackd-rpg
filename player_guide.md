@@ -18,7 +18,8 @@ executes it, and the world reacts to what they can see along the way.
 
 ## Views
 
-The game has two views, toggled with **Tab**.
+The game has two views, toggled with **Tab**. The current view is shown in the
+**top-right corner** of the screen.
 
 | View | Description |
 |---|---|
@@ -37,7 +38,7 @@ The tactical camera is always centred on the selected entity and follows it auto
 | `S` / `↓` | Tilt camera toward horizon (decrease pitch) |
 | `A` / `←` | Rotate camera left (yaw) |
 | `D` / `→` | Rotate camera right (yaw) |
-| `Scroll up` | Zoom in (lower camera height) |
+| `Scroll up` | Zoom in (lower camera height, down to eye level) |
 | `Scroll down` | Zoom out (raise camera height) |
 | `Right-click` | Issue march order to cursor position *(Planning phase only)* |
 | `Tab` | Switch to Entity view |
@@ -57,7 +58,7 @@ Use it to see exactly what the entity can see — useful for scouting sight line
 | `D` / `→` | Look right |
 | `Scroll up` | Narrow FOV (zoom in) |
 | `Scroll down` | Widen FOV (zoom out) |
-| `Tab` | Switch back to Tactical view |
+| `Tab` or `Esc` | Switch back to Tactical view |
 
 ---
 
@@ -92,6 +93,25 @@ The top-left panel shows debug and status information for the selected entity.
 | Cam height | Camera height above terrain |
 | Cam look | Camera look direction vector |
 | Status bar *(bottom)* | Current phase / activity |
+| View indicator *(top-right)* | Current view mode (TACTICAL VIEW / ENTITY VIEW) |
+
+---
+
+## Entity Visuals
+
+Each entity in the world is shown as a **capsule** (1.8 m tall) in Tactical view.
+
+- **Yellow capsule** — currently selected entity
+- **Grey/white capsule** — other entities
+
+Floating above each capsule is a **screen-space label** showing:
+
+```
+Name  Type
+Role
+```
+
+Labels are hidden in Entity view.
 
 ---
 
@@ -112,17 +132,30 @@ deleted and re-forged to pick up the latest terrain generation improvements.
 
 ## Entity Selection
 
-- The **yellow emissive ring** on the terrain marks the currently selected entity
+- The **yellow capsule** marks the currently selected entity
 - Only one entity can be selected (yellow) at a time
 - Selection is set automatically to the first player character on load
 - *(Clicking to change selection — coming soon)*
 
 ---
 
+## Fog of War
+
+Terrain is covered by fog until your party reveals it.
+
+| Appearance | Meaning |
+|---|---|
+| **Very dark** | Never explored — your party has no information about this area |
+| **Dimmed** | Explored but not currently visible — terrain is remembered but conditions may have changed |
+| **Full brightness** | Currently in your party's line of sight |
+
+The viewshed is computed from the selected entity's eye level using the actual terrain heightmap.
+Terrain that is behind a hill or ridge will remain in fog even if it is close.
+
+---
+
 ## What's Coming
 
-- Entity capsule visuals and name labels in tactical view
-- Full-screen entity view (replacing split-screen)
-- Fog of war driven by viewshed
+- Clicking to change entity selection
 - Encounter system — enemies appear when they enter your line of sight
 - Regional LOD terrain rendering beyond the local chunk radius

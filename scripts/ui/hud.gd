@@ -35,11 +35,17 @@ var _viewshed_mask: PackedByteArray
 var _mask_width: int = 0
 var _mask_height: int = 0
 
-var _tactical_cam = null  # TacticalCamera reference set by GameWorld
+var _tactical_cam = null     # TacticalCamera reference set by GameWorld
+var _active_camera: Camera3D = null  # whichever Camera3D is currently rendering
 
 
 func set_camera(cam) -> void:
 	_tactical_cam = cam
+	_active_camera = cam.get_camera()
+
+
+func set_active_view_camera(cam: Camera3D) -> void:
+	_active_camera = cam
 
 
 func _ready() -> void:
@@ -78,14 +84,17 @@ func _process(_delta: float) -> void:
 		entity_label.text = "Entity: %s" % char_name
 
 	# Camera debug info
-	if _tactical_cam != null:
-		var cam_pos: Vector3 = _tactical_cam.global_position
-		var base_y: float = _tactical_cam._target_base_y
-		var overhead: float = _tactical_cam._target_height
-		var look_dir: Vector3 = -_tactical_cam.global_transform.basis.z
-		cam_pos_label.text = "Cam pos: %.0f, %.0f, %.0f" % [cam_pos.x, cam_pos.y, cam_pos.z]
-		cam_height_label.text = "Cam height: %.0fm above terrain (base %.0f)" % [overhead, base_y]
+	if _active_camera != null:
+		var cam_pos: Vector3 = _active_camera.global_position
+		var look_dir: Vector3 = -_active_camera.global_transform.basis.z
 		cam_orient_label.text = "Cam look: %.2f, %.2f, %.2f" % [look_dir.x, look_dir.y, look_dir.z]
+		cam_pos_label.text = "Cam pos: %.0f, %.0f, %.0f" % [cam_pos.x, cam_pos.y, cam_pos.z]
+		if _tactical_cam != null and _tactical_cam.get_camera() == _active_camera:
+			var base_y: float = _tactical_cam._target_base_y
+			var overhead: float = _tactical_cam._target_height
+			cam_height_label.text = "Cam height: %.0fm above terrain (base %.0f)" % [overhead, base_y]
+		else:
+			cam_height_label.text = "Cam height: %.1fm (eye level)" % EntityCamController.EYE_HEIGHT
 	else:
 		cam_pos_label.text = "Cam pos: —"
 		cam_height_label.text = "Cam height: —"

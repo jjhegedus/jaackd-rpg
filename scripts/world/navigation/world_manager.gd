@@ -40,10 +40,19 @@ func initialize(manifest: WorldManifest) -> void:
 
 
 # Called each time the player moves to a new chunk position.
+# chunk_x/chunk_y are LOCAL chunk coordinates.
 func update_active_chunks(
 		face: int, chunk_x: int, chunk_y: int) -> void:
 	_enqueue_radius(face, chunk_x, chunk_y, LOAD_RADIUS_LOCAL, ChunkData.LOD.LOCAL)
-	_enqueue_radius(face, chunk_x, chunk_y, LOAD_RADIUS_REGIONAL, ChunkData.LOD.REGIONAL)
+
+	# Regional chunks use a different (coarser) coordinate grid.
+	# Convert local chunk coords → regional chunk coords before enqueuing.
+	var local_size    := _manifest.cell_size_local_m    * float(_manifest.chunk_cells_local)
+	var regional_size := _manifest.cell_size_regional_m * float(_manifest.chunk_cells_regional)
+	var rx := floori(float(chunk_x) * local_size / regional_size)
+	var ry := floori(float(chunk_y) * local_size / regional_size)
+	_enqueue_radius(face, rx, ry, LOAD_RADIUS_REGIONAL, ChunkData.LOD.REGIONAL)
+
 	_process_queue()
 
 
@@ -74,8 +83,6 @@ func _enqueue_radius(face: int, cx: int, cy: int,
 		for dx in range(-radius, radius + 1):
 			var nx := cx + dx
 			var ny := cy + dy
-			if nx < 0 or ny < 0:
-				continue
 			var key := _key(face, nx, ny)
 			var cache := _cache_for_lod(lod)
 			if not cache.has(key):

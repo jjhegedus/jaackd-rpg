@@ -137,6 +137,19 @@ func get_visible(chunk_key: String) -> PackedByteArray:
 func get_regional_explored(chunk_key: String) -> PackedByteArray:
 	return _regional_explored.get(chunk_key, PackedByteArray())
 
+
+# Returns the regional chunk coords (Vector2i) where at least one cell has
+# been explored.  Used to populate EntityGroup.known_chunks at session load.
+func get_explored_regional_chunks() -> Array[Vector2i]:
+	var result: Array[Vector2i] = []
+	for key in _regional_explored.keys():
+		var mask: PackedByteArray = _regional_explored[key]
+		if mask.has(1):
+			var parts := (key as String).split("_")
+			if parts.size() == 3:
+				result.append(Vector2i(int(parts[1]), int(parts[2])))
+	return result
+
 func get_regional_visible(chunk_key: String) -> PackedByteArray:
 	return _regional_visible.get(chunk_key, PackedByteArray())
 

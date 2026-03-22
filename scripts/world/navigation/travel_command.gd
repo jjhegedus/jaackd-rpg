@@ -46,6 +46,9 @@ enum Formation { TIGHT, STANDARD, SPREAD }
 @export var pace: Pace = Pace.NORMAL
 @export var formation: Formation = Formation.STANDARD
 
+# The group this command was issued to.  Set by TurnManager.issue_command().
+@export var group_id: int = -1
+
 # -----------------------------------------------------------------------
 # Execution state (written by TravelSimulation)
 # -----------------------------------------------------------------------

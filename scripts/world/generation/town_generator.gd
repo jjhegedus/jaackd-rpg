@@ -206,8 +206,26 @@ func _new_character(town_name: String, age: int, role: String) -> Character:
 	c.behavior_profile = BehaviorProfile.for_humanoid(_rng)
 
 	c.backstory_seed = _backstory_gen.generate(c, town_name, _rng)
-	c.player_selectable = true
+	c.player_selectable = false   # townspeople are NPCs, not player-commanded
 
+	return c
+
+
+func get_next_id() -> int:
+	return _next_id
+
+
+# Creates a player-selectable adventurer character (not a townsperson).
+func create_adventurer(id: int, role: String, rng: RandomNumberGenerator) -> Character:
+	var c := Character.new()
+	c.character_id = id
+	c.display_name = _generate_name()
+	c.town_role = StringName(role)
+	c.age = rng.randi_range(20, 35)
+	c.player_selectable = true
+	c.alive = true
+	c.stats.randomize_from_rng(rng)
+	c.appearance.randomize_from_rng(rng)
 	return c
 
 

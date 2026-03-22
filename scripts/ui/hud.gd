@@ -68,11 +68,7 @@ func _process(_delta: float) -> void:
 	if WorldManager._is_generating:
 		status_label.text = "Loading terrain…"
 	elif TurnManager.phase == TurnManager.Phase.RESOLUTION:
-		var cmd: TravelCommand = TurnManager.get_active_command()
-		if cmd != null:
-			status_label.text = "Marching — %s" % cmd.describe()
-		else:
-			status_label.text = "Resolving…"
+		status_label.text = "Resolving…"
 	else:
 		status_label.text = "Planning  [right-click to march]"
 

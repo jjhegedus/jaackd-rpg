@@ -152,6 +152,7 @@ func _on_play() -> void:
 		world_status.text = "Error: world data is invalid or missing."
 		return
 	WorldManager.initialize(manifest)
+	NetworkManager.start_offline()
 	get_tree().change_scene_to_file(GAME_WORLD_SCENE)
 
 

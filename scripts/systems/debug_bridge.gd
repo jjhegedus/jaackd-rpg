@@ -49,7 +49,7 @@ func _ready() -> void:
 # nodes is an Array of Dictionaries: [{"id": "PlayBtn", "node": play_btn}, ...]
 # ---------------------------------------------------------------------------
 
-func screen_ready(scene: String, panel: String, nodes: Array) -> void:
+func screen_ready(scene: String, panel: String, nodes: Array, extra: Dictionary = {}) -> void:
 	if not _is_active():
 		return
 
@@ -84,9 +84,18 @@ func screen_ready(scene: String, panel: String, nodes: Array) -> void:
 			for i in list.item_count:
 				items.append(list.get_item_text(i))
 			action["items"] = items
+		elif node is Label:
+			action["type"] = "label"
+			var lbl := node as Label
+			action["text"]    = lbl.text
+			action["visible"] = lbl.visible
+			action["size"]    = {"x": lbl.size.x, "y": lbl.size.y}
+			action["color"]   = lbl.get_theme_color("font_color").to_html()
 		actions.append(action)
 
-	_append_event({"type": "screen_ready", "scene": scene, "panel": panel, "actions": actions})
+	var event := {"type": "screen_ready", "scene": scene, "panel": panel, "actions": actions}
+	event.merge(extra)
+	_append_event(event)
 
 
 func log_progress(fraction: float, status: String) -> void:
@@ -180,6 +189,7 @@ func _execute_command(cmd: Dictionary) -> void:
 				return
 			(node as LineEdit).text = value
 			(node as LineEdit).text_changed.emit(value)
+			(node as LineEdit).grab_focus()
 			_ack(cmd_id, true)
 
 		"set_value":
@@ -219,6 +229,53 @@ func _execute_command(cmd: Dictionary) -> void:
 				_ack(cmd_id, false, "No node in group 'player'")
 				return
 			(players[0] as Node3D).global_position = Vector3(x, y, z)
+			_ack(cmd_id, true)
+
+		"press_key":
+			var keycode_str: String = cmd.get("keycode", "")
+			var keycode: Key = OS.find_keycode_from_string(keycode_str)
+			if keycode == KEY_NONE:
+				_ack(cmd_id, false, "Unknown keycode: " + keycode_str)
+				return
+			var ev_down := InputEventKey.new()
+			ev_down.keycode = keycode
+			ev_down.physical_keycode = keycode
+			ev_down.pressed = true
+			Input.parse_input_event(ev_down)
+			var ev_up := InputEventKey.new()
+			ev_up.keycode = keycode
+			ev_up.physical_keycode = keycode
+			ev_up.pressed = false
+			Input.parse_input_event(ev_up)
+			_ack(cmd_id, true)
+
+		"verify_groups":
+			var manifest: WorldManifest = WorldManager._manifest
+			if manifest == null:
+				_append_event({"type": "groups_verified", "ok": false, "detail": "No manifest loaded"})
+				_ack(cmd_id, true)
+				return
+			var groups := EntityRegistry.get_all_groups()
+			var group_count := groups.size()
+			var char_count: int = manifest.characters.size()
+			var fail_detail := ""
+			for c in manifest.characters:
+				var ch := c as Character
+				if EntityRegistry.get_group_for_entity(ch.character_id) == null:
+					fail_detail = "Character %d (%s) has no group" % [ch.character_id, ch.display_name]
+					break
+			if fail_detail == "":
+				for g in groups:
+					var eg := g as EntityGroup
+					if eg.member_ids.size() == 0:
+						fail_detail = "Group %d has 0 members" % eg.group_id
+						break
+			if fail_detail != "":
+				_append_event({"type": "groups_verified", "ok": false, "detail": fail_detail})
+			else:
+				_append_event({"type": "groups_verified", "ok": true,
+					"group_count": group_count, "char_count": char_count,
+					"detail": "%d groups for %d characters" % [group_count, char_count]})
 			_ack(cmd_id, true)
 
 		"quit":

@@ -40,9 +40,43 @@ const CURRENT_FORGE_VERSION := 2  # v2: ChunkData edge_right/edge_bottom/edge_co
 @export var starting_town_name: String = ""
 @export var characters: Array[Character] = []
 
+# --- Groups ---
+# Every entity belongs to exactly one EntityGroup.
+# Solo groups (size == 1) wrap individual entities and are hidden from the UI.
+@export var groups: Array[EntityGroup] = []
+
+# Monotonically increasing counter — always use this to allocate a new group_id.
+@export var next_group_id: int = 0
+
 # --- Validity ---
 # A world is only "ready to play" once World Forge has completed generation
 @export var is_valid: bool = false
+
+
+# Ensures every character has a solo group.  Idempotent — safe to call on
+# freshly generated manifests and on older saved manifests that predate groups.
+func ensure_solo_groups() -> void:
+	# Build a set of entity IDs that already have a group entry.
+	var grouped: Dictionary = {}
+	for g in groups:
+		var eg := g as EntityGroup
+		for mid in eg.member_ids:
+			grouped[mid] = eg.group_id
+
+	for c in characters:
+		var ch := c as Character
+		if grouped.has(ch.character_id):
+			ch.group_id = grouped[ch.character_id]
+			continue
+		var g := EntityGroup.new()
+		g.group_id      = next_group_id
+		next_group_id  += 1
+		g.display_name  = ""
+		g.owner_peer_id = -1
+		g.member_ids    = [ch.character_id]
+		g.anchor_entity = ch.character_id
+		ch.group_id     = g.group_id
+		groups.append(g)
 
 
 func save(path: String) -> Error:
@@ -52,7 +86,10 @@ func save(path: String) -> Error:
 static func load_from(path: String) -> WorldManifest:
 	if not ResourceLoader.exists(path):
 		return null
-	return ResourceLoader.load(path) as WorldManifest
+	var m := ResourceLoader.load(path) as WorldManifest
+	if m != null:
+		m.ensure_solo_groups()  # no-op if groups already present; migrates old saves
+	return m
 
 
 func get_save_path() -> String:

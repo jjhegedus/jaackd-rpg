@@ -20,6 +20,9 @@ signal position_updated(character_id: int, world_pos: Vector3)
 signal selection_changed(character_id: int, is_selected: bool)
 signal zoom_group_changed(character_id: int, in_zoom: bool)
 signal faction_changed(character_id: int, faction: StringName)
+signal group_loaded(group_id: int)
+signal groups_cleared
+signal group_restructured(group_id: int)
 
 # -----------------------------------------------------------------------
 # Inner type
@@ -36,8 +39,11 @@ class EntityRecord:
 # State
 # -----------------------------------------------------------------------
 
-var _entities: Dictionary = {}   # int (character_id) → EntityRecord
-var _selected_id: int = -1        # at most one entity is yellow at a time
+var _entities: Dictionary = {}        # int (character_id) → EntityRecord
+var _selected_id: int = -1             # at most one entity is yellow at a time
+
+var _groups: Dictionary = {}           # int (group_id) → EntityGroup
+var _entity_to_group: Dictionary = {}  # int (character_id) → int (group_id)
 
 # -----------------------------------------------------------------------
 # Registration
@@ -254,7 +260,6 @@ func build_detection_targets(
 	return targets
 
 
-# Player entity positions as Array[Vector3] — for TurnManager.issue_command().
 func get_player_positions() -> Array[Vector3]:
 	var result: Array[Vector3] = []
 	for id in _entities:
@@ -265,6 +270,119 @@ func get_player_positions() -> Array[Vector3]:
 
 
 # -----------------------------------------------------------------------
+# Groups
+# -----------------------------------------------------------------------
+
+# Load all groups from the manifest at session start.
+func load_groups(manifest_groups: Array[EntityGroup]) -> void:
+	_groups.clear()
+	_entity_to_group.clear()
+	for g in manifest_groups:
+		var eg := g as EntityGroup
+		_groups[eg.group_id] = eg
+		for mid in eg.member_ids:
+			_entity_to_group[mid] = eg.group_id
+		group_loaded.emit(eg.group_id)
+
+
+func get_group(group_id: int) -> EntityGroup:
+	return _groups.get(group_id) as EntityGroup
+
+
+# Returns the group that contains this entity, or null if not found.
+func get_group_for_entity(character_id: int) -> EntityGroup:
+	var gid: int = _entity_to_group.get(character_id, -1)
+	if gid == -1:
+		return null
+	return _groups.get(gid) as EntityGroup
+
+
+func get_all_groups() -> Array[EntityGroup]:
+	var result: Array[EntityGroup] = []
+	for g in _groups.values():
+		result.append(g as EntityGroup)
+	return result
+
+
+# Returns all groups owned by the given peer (-1 = unclaimed groups).
+func get_groups_by_owner(owner_peer_id: int) -> Array[EntityGroup]:
+	var result: Array[EntityGroup] = []
+	for g in _groups.values():
+		var eg := g as EntityGroup
+		if eg.owner_peer_id == owner_peer_id:
+			result.append(eg)
+	return result
+
+
+func get_group_count() -> int:
+	return _groups.size()
+
+
+# -----------------------------------------------------------------------
+# Group restructuring (PLANNING phase only)
+# -----------------------------------------------------------------------
+
+# Move all members of absorb_group into into_group, then remove absorb_group.
+# Clears any pending command on the absorbed group.
+func merge_groups(absorb_id: int, into_id: int) -> void:
+	if absorb_id == into_id:
+		return
+	var absorb := _groups.get(absorb_id) as EntityGroup
+	var into   := _groups.get(into_id)   as EntityGroup
+	if absorb == null or into == null:
+		return
+	for mid in absorb.member_ids:
+		into.member_ids.append(mid)
+		_entity_to_group[mid] = into_id
+	if into.anchor_entity < 0 and not absorb.member_ids.is_empty():
+		into.anchor_entity = absorb.member_ids[0]
+	# Union known_chunks — both sides retain all exploration knowledge.
+	for coord in absorb.known_chunks:
+		if not into.known_chunks.has(coord):
+			into.known_chunks.append(coord)
+	TurnManager.clear_command(absorb_id)
+	_groups.erase(absorb_id)
+	var manifest := WorldManager._manifest
+	if manifest != null:
+		for i in manifest.groups.size():
+			if (manifest.groups[i] as EntityGroup).group_id == absorb_id:
+				manifest.groups.remove_at(i)
+				break
+		manifest.save(manifest.get_save_path())
+	group_restructured.emit(into_id)
+
+
+# Split member_id out of its group into a new solo group owned by the same peer.
+# Returns the new group_id, or -1 on failure.
+func split_member(group_id: int, member_id: int) -> int:
+	var group := _groups.get(group_id) as EntityGroup
+	if group == null or not group.member_ids.has(member_id):
+		return -1
+	if group.member_ids.size() <= 1:
+		return -1
+	var manifest := WorldManager._manifest
+	if manifest == null:
+		return -1
+	group.member_ids.erase(member_id)
+	if group.anchor_entity == member_id:
+		group.anchor_entity = group.member_ids[0]
+	var new_group := EntityGroup.new()
+	new_group.group_id      = manifest.next_group_id
+	manifest.next_group_id += 1
+	new_group.display_name  = ""
+	new_group.owner_peer_id = group.owner_peer_id
+	new_group.member_ids    = [member_id]
+	new_group.anchor_entity = member_id
+	new_group.known_chunks  = group.known_chunks.duplicate()
+	_groups[new_group.group_id] = new_group
+	_entity_to_group[member_id] = new_group.group_id
+	manifest.groups.append(new_group)
+	manifest.save(manifest.get_save_path())
+	group_restructured.emit(new_group.group_id)
+	return new_group.group_id
+
+
+# -----------------------------------------------------------------------
 # Session lifecycle
 # -----------------------------------------------------------------------
 
@@ -272,6 +390,9 @@ func get_player_positions() -> Array[Vector3]:
 func clear() -> void:
 	_entities.clear()
 	_selected_id = -1
+	_groups.clear()
+	_entity_to_group.clear()
+	groups_cleared.emit()
 
 
 # -----------------------------------------------------------------------

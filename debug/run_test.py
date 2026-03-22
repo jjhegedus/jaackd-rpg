@@ -41,9 +41,10 @@ import sys
 import time
 
 
-def wait_for_event(events_path, event_type, timeout_sec, extra_filter=None):
+def wait_for_event(events_path, event_type, timeout_sec, extra_filter=None, after_seq=-1):
     """Read events.jsonl until an event matching event_type (and extra_filter) appears.
 
+    after_seq: only accept events whose seq is strictly greater than this value.
     Returns the matched event dict, or None on timeout.
     """
     deadline = time.monotonic() + timeout_sec
@@ -67,6 +68,8 @@ def wait_for_event(events_path, event_type, timeout_sec, extra_filter=None):
             try:
                 event = json.loads(stripped)
             except json.JSONDecodeError:
+                continue
+            if event.get("seq", -1) <= after_seq:
                 continue
             if event.get("type") == event_type:
                 if extra_filter is None or extra_filter(event):
@@ -134,6 +137,7 @@ def run_test(test_path, godot_exe, headless):
     cmd_seq = 1
     passed = 0
     failed = 0
+    last_seq = -1  # track highest seq seen; wait_for only accepts events after this
 
     try:
         for i, step in enumerate(steps):
@@ -146,11 +150,12 @@ def run_test(test_path, godot_exe, headless):
             if step_type in ("wait_for", "assert"):
                 event_type = step["event"]
                 filt = _make_filter(step.get("panel"), step.get("scene"))
-                ev = wait_for_event(events_path, event_type, timeout, filt)
+                ev = wait_for_event(events_path, event_type, timeout, filt, after_seq=last_seq)
                 if ev is None:
                     print(f"    TIMEOUT waiting for '{event_type}' after {timeout}s")
                     failed += 1
                     break
+                last_seq = max(last_seq, ev.get("seq", last_seq))
                 print(f"    OK  seq={ev.get('seq')} t={ev.get('t'):.1f}")
                 passed += 1
 
@@ -165,6 +170,7 @@ def run_test(test_path, godot_exe, headless):
                     "cmd_ack",
                     timeout,
                     lambda e, cid=payload["id"]: e.get("id") == cid,
+                    after_seq=last_seq,
                 )
                 if ack is None:
                     print(f"    TIMEOUT waiting for ack of cmd {payload['id']}")
@@ -174,7 +180,33 @@ def run_test(test_path, godot_exe, headless):
                     print(f"    FAIL  {ack.get('error', 'unknown error')}")
                     failed += 1
                     break
+                # Do not advance last_seq from acks — side-effect events (e.g.
+                # screen_ready) may fire synchronously before the ack and have
+                # a lower seq.  Only wait_for / check steps advance last_seq.
                 print(f"    OK  ack id={ack.get('id')}")
+                passed += 1
+
+            elif step_type == "check":
+                # Like wait_for, but also validates specific fields in the event.
+                event_type = step["event"]
+                filt = _make_filter(step.get("panel"), step.get("scene"))
+                ev = wait_for_event(events_path, event_type, timeout, filt, after_seq=last_seq)
+                if ev is None:
+                    print(f"    TIMEOUT waiting for '{event_type}' after {timeout}s")
+                    failed += 1
+                    break
+                check_fields = step.get("fields", {})
+                all_match = True
+                for k, v in check_fields.items():
+                    if ev.get(k) != v:
+                        print(f"    FAIL  field '{k}': expected {v!r}, got {ev.get(k)!r}")
+                        all_match = False
+                if not all_match:
+                    failed += 1
+                    break
+                last_seq = max(last_seq, ev.get("seq", last_seq))
+                detail = ev.get("detail", "")
+                print(f"    OK  seq={ev.get('seq')} {detail}")
                 passed += 1
 
             else:

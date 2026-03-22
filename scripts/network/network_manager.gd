@@ -15,14 +15,22 @@ signal client_connected
 signal connection_failed(reason: String)
 signal peer_joined(peer_id: int)
 signal peer_left(peer_id: int)
+signal peer_role_received(peer_id: int, role: int)  # role is PeerRole value
 
-enum Mode { OFFLINE, HOST, CLIENT }
+enum Mode     { OFFLINE, HOST, CLIENT }
+enum PeerRole { PLAYER, WORLD_MANAGER }
 
 const DEFAULT_PORT := 7777
 const MAX_PEERS    := 16
 
 var mode: Mode = Mode.OFFLINE
 var local_peer_id: int = 1  # 1 = server authority in Godot multiplayer
+
+# Set this before calling start_offline / start_host / join.
+var local_role: PeerRole = PeerRole.PLAYER
+
+# Server-side map of peer_id → PeerRole.  Populated by _rpc_announce_role.
+var _peer_roles: Dictionary = {}
 
 
 func _ready() -> void:
@@ -39,6 +47,7 @@ func start_offline() -> void:
 	multiplayer.multiplayer_peer = peer
 	mode = Mode.OFFLINE
 	local_peer_id = 1
+	_peer_roles[local_peer_id] = local_role
 	server_started.emit()
 
 
@@ -51,6 +60,7 @@ func start_host(port: int = DEFAULT_PORT) -> Error:
 	multiplayer.multiplayer_peer = peer
 	mode = Mode.HOST
 	local_peer_id = 1
+	_peer_roles[local_peer_id] = local_role
 	server_started.emit()
 	return OK
 
@@ -71,6 +81,7 @@ func disconnect_from_session() -> void:
 		multiplayer.multiplayer_peer.close()
 	multiplayer.multiplayer_peer = null
 	mode = Mode.OFFLINE
+	_peer_roles.clear()
 
 
 func is_server() -> bool:
@@ -81,8 +92,21 @@ func is_offline() -> bool:
 	return mode == Mode.OFFLINE
 
 
+func is_world_manager() -> bool:
+	return local_role == PeerRole.WORLD_MANAGER
+
+
 func get_peer_id() -> int:
 	return multiplayer.get_unique_id()
+
+
+func get_local_role() -> PeerRole:
+	return local_role
+
+
+# Returns the stored role for any peer (server-side).  Defaults to PLAYER if unknown.
+func get_peer_role(peer_id: int) -> PeerRole:
+	return _peer_roles.get(peer_id, PeerRole.PLAYER) as PeerRole
 
 
 # --- Callbacks ---
@@ -98,7 +122,17 @@ func _on_peer_disconnected(id: int) -> void:
 func _on_connected_to_server() -> void:
 	local_peer_id = multiplayer.get_unique_id()
 	client_connected.emit()
+	# Announce our role to the server so it can populate _peer_roles.
+	_rpc_announce_role.rpc_id(1, local_role)
 
 
 func _on_connection_failed() -> void:
 	connection_failed.emit("Connection to server failed.")
+
+
+# Called on the server by each connecting client to register their role.
+@rpc("any_peer", "call_remote", "reliable")
+func _rpc_announce_role(role: PeerRole) -> void:
+	var sender := multiplayer.get_remote_sender_id()
+	_peer_roles[sender] = role
+	peer_role_received.emit(sender, role)

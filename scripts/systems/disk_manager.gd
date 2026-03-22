@@ -230,16 +230,22 @@ func _delete_dir_recursive(path: String) -> Error:
 	var dir := DirAccess.open(path)
 	if dir == null:
 		return ERR_DOES_NOT_EXIST
+	# Collect all entries first — deleting while iterating skips items on Windows.
+	var subdirs: Array[String] = []
+	var files:   Array[String] = []
 	dir.list_dir_begin()
 	var item := dir.get_next()
 	while item != "":
 		if not item.begins_with("."):
-			var full := path + item
 			if dir.current_is_dir():
-				_delete_dir_recursive(full + "/")
-				dir.remove(item)
+				subdirs.append(item)
 			else:
-				dir.remove(item)
+				files.append(item)
 		item = dir.get_next()
 	dir.list_dir_end()
+	for f in files:
+		dir.remove(f)
+	for sub in subdirs:
+		_delete_dir_recursive(path + sub + "/")
+		dir.remove(sub)
 	return DirAccess.remove_absolute(path)

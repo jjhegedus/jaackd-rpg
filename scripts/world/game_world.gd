@@ -59,9 +59,10 @@ func _ready() -> void:
 	_register_player_entities()
 	_setup_town_marker()
 	_spawn_enemies()
-	_setup_party_panel()
+	_setup_command_panel()
 
 	EntityRegistry.position_updated.connect(_on_entity_position_updated)
+	_populate_group_known_chunks()
 
 	if OS.is_debug_build():
 		DebugBridge.screen_ready("GameWorld", "", [])
@@ -70,6 +71,9 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	if _fog_manager != null:
 		_fog_manager.save_explored()
+	var manifest := WorldManager._manifest
+	if manifest != null:
+		manifest.save(manifest.get_save_path())
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -149,8 +153,8 @@ func _setup_fog() -> void:
 	_entity_visuals.set_fog_manager(_fog_manager)
 
 
-func _setup_party_panel() -> void:
-	var panel := PartyPanel.new()
+func _setup_command_panel() -> void:
+	var panel := CommandPanel.new()
 	add_child(panel)
 
 
@@ -192,6 +196,19 @@ func _register_player_entities() -> void:
 		return
 
 	EntityRegistry.clear()
+	EntityRegistry.load_groups(manifest.groups)
+
+	# In offline/single-player mode there is no lobby to claim groups, so
+	# auto-claim all player_selectable groups for the local peer.
+	if NetworkManager.is_offline():
+		var local_peer := NetworkManager.local_peer_id
+		for c in manifest.characters:
+			var ch := c as Character
+			if not ch.player_selectable or not ch.alive:
+				continue
+			var group := EntityRegistry.get_group_for_entity(ch.character_id)
+			if group != null and group.owner_peer_id < 0:
+				group.owner_peer_id = local_peer
 
 	var chunk_size_m := float(manifest.chunk_cells_local) * manifest.cell_size_local_m
 	var cell_size    := manifest.cell_size_local_m
@@ -309,7 +326,17 @@ func _setup_town_marker() -> void:
 
 func _on_ground_chunk_changed(face: int, chunk_x: int, chunk_y: int) -> void:
 	WorldManager.update_active_chunks(face, chunk_x, chunk_y)
-	_lod_manager.update(face, chunk_x, chunk_y, 0, 0, WorldManager)
+	# Pass the selected entity's cell position within the chunk so the LODManager
+	# can compute the regional viewshed from the correct observer location.
+	var cell_x := 0
+	var cell_z := 0
+	var manifest := WorldManager._manifest
+	if manifest != null:
+		var chunk_m := float(manifest.chunk_cells_local) * manifest.cell_size_local_m
+		var pos     := EntityRegistry.get_selected_pos()
+		cell_x = clampi(int(fmod(pos.x, chunk_m) / manifest.cell_size_local_m), 0, manifest.chunk_cells_local - 1)
+		cell_z = clampi(int(fmod(pos.z, chunk_m) / manifest.cell_size_local_m), 0, manifest.chunk_cells_local - 1)
+	_lod_manager.update(face, chunk_x, chunk_y, cell_x, cell_z, WorldManager)
 
 
 func _on_priority_updated(jobs: Array) -> void:
@@ -470,8 +497,9 @@ func _make_regional_shader() -> Shader:
 	shader.code = """shader_type spatial;
 
 // R8 texture: 0.0 = visible, ~0.55 = explored/hidden, 1.0 = unexplored black.
-// hint_default_black so terrain starts fully black until a viewshed is computed.
-uniform sampler2D fog_texture : source_color, hint_default_black, filter_linear;
+// hint_default_white: terrain visible until viewshed is computed (no black flicker).
+// filter_nearest + repeat_disable: sharp per-cell fog, UV=1.0 clamps to last texel.
+uniform sampler2D fog_texture : source_color, hint_default_white, filter_nearest, repeat_disable;
 
 void fragment() {
 	float fog_strength = texture(fog_texture, UV).r;
@@ -501,12 +529,34 @@ func _on_entity_position_updated(id: int, pos: Vector3) -> void:
 	_fog_manager.try_update(id, pos, chunk)
 
 
+# Migration: populate known_chunks from fog for any group that has none yet
+# (saves that predate this feature, or freshly forged worlds).
+func _populate_group_known_chunks() -> void:
+	if _fog_manager == null:
+		return
+	var local_peer := NetworkManager.local_peer_id
+	for group in EntityRegistry.get_groups_by_owner(local_peer):
+		var eg := group as EntityGroup
+		if eg.known_chunks.is_empty():
+			eg.known_chunks = _fog_manager.get_explored_regional_chunks()
+
+
 func _on_chunk_fog_updated(chunk_key: String) -> void:
 	_update_chunk_fog(chunk_key)
 
 
 func _on_regional_chunk_fog_updated(chunk_key: String) -> void:
 	_update_regional_chunk_fog(chunk_key)
+	# Keep group known_chunks in sync as new areas are explored.
+	var parts := chunk_key.split("_")
+	if parts.size() != 3:
+		return
+	var coord := Vector2i(int(parts[1]), int(parts[2]))
+	var local_peer := NetworkManager.local_peer_id
+	for group in EntityRegistry.get_groups_by_owner(local_peer):
+		var eg := group as EntityGroup
+		if not eg.known_chunks.has(coord):
+			eg.known_chunks.append(coord)
 
 
 func _update_regional_chunk_fog(chunk_key: String) -> void:
@@ -556,6 +606,10 @@ func _update_chunk_fog(chunk_key: String) -> void:
 		return
 	var explored := _fog_manager.get_explored(chunk_key)
 	var visible  := _fog_manager.get_visible(chunk_key)
+	# Skip upload if there is no data — the shader's hint_default_white renders
+	# unexplored chunks as fully visible, so there is nothing to paint.
+	if explored.is_empty() and visible.is_empty():
+		return
 	var t0 := Time.get_ticks_usec()
 	(_chunk_nodes[chunk_key] as TerrainChunkNode).update_fog(explored, visible)
 	var elapsed := Time.get_ticks_usec() - t0
@@ -584,6 +638,10 @@ func _issue_march_to_cursor(screen_pos: Vector2) -> void:
 	if lead_id < 0:
 		return
 
+	var group := EntityRegistry.get_group_for_entity(lead_id)
+	if group == null:
+		return
+
 	var lead_pos  := EntityRegistry.get_entity_pos(lead_id)
 	var flat_diff := Vector2(dest.x - lead_pos.x, dest.z - lead_pos.z)
 	if flat_diff.length() < 1.0:
@@ -595,16 +653,11 @@ func _issue_march_to_cursor(screen_pos: Vector2) -> void:
 	cmd.direction   = flat_diff.normalized()
 	cmd.pace        = TravelCommand.Pace.NORMAL
 
-	TurnManager.issue_command(
-		cmd,
-		EntityRegistry.get_player_positions(),
-		EntityRegistry.get_player_ids())
+	TurnManager.submit_command(group.group_id, cmd)
 
 
 func _on_command_completed(_cmd: Variant) -> void:
-	# Skip manual REVIEW for now — return immediately to PLANNING
-	# so the player can issue another command.
-	TurnManager.end_review()
+	pass  # CommandPanel handles REVIEW → PLANNING via its Continue button.
 
 
 # -----------------------------------------------------------------------

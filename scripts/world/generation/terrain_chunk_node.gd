@@ -101,20 +101,19 @@ func _rebuild_mesh() -> void:
 func _make_terrain_material() -> ShaderMaterial:
 	var shader := Shader.new()
 	shader.code = """shader_type spatial;
-render_mode cull_disabled;
+// unshaded: eliminates cross-chunk normal discontinuity (shading seam at chunk boundaries).
+// Vertex colours provide all the visual depth information needed.
+// cull_disabled lets underground faces show from below if the camera dips.
+render_mode cull_disabled, unshaded;
 
 // R8 texture: 0.0 = visible, ~0.55 = explored/hidden, 1.0 = unexplored black.
-// hint_default_black means fog_strength = 0 (no fog) until the texture is set.
-uniform sampler2D fog_texture : source_color, hint_default_black, filter_linear;
+// hint_default_white: terrain visible until viewshed is computed (no black flicker).
+// filter_nearest: sharp per-cell fog, no UV bleed. repeat_disable: UV=1.0 clamps to last texel.
+uniform sampler2D fog_texture : source_color, hint_default_white, filter_nearest, repeat_disable;
 
 void fragment() {
 	float fog_strength = texture(fog_texture, UV).r;
-	ALBEDO    = mix(COLOR.rgb, vec3(0.0), fog_strength);
-	ROUGHNESS = 0.9;
-	METALLIC  = 0.0;
-	if (!FRONT_FACING) {
-		NORMAL = -NORMAL;
-	}
+	ALBEDO = mix(COLOR.rgb, vec3(0.0), fog_strength);
 }"""
 	var mat := ShaderMaterial.new()
 	mat.shader = shader

@@ -80,7 +80,18 @@ func _forge_thread_func(manifest: WorldManifest) -> void:
 	call_deferred("_emit_progress", 0.55, "Generating starting town…")
 	_town_gen = TownGenerator.new()
 	var characters := _town_gen.generate(manifest.world_seed, manifest.starting_town_name)
+
+	# Add a starting adventurer party (player_selectable = true).
+	var adv_rng := RandomNumberGenerator.new()
+	adv_rng.seed = manifest.world_seed ^ 0x5A3F1C2D
+	var adv_roles := ["warrior", "ranger", "rogue", "cleric", "mage"]
+	var next_adv_id: int = _town_gen.get_next_id()
+	for role in adv_roles:
+		characters.append(_town_gen.create_adventurer(next_adv_id, role, adv_rng))
+		next_adv_id += 1
+
 	manifest.characters.assign(characters)
+	manifest.ensure_solo_groups()
 
 	# --- Phase 3: Pre-bake regional chunks from starting point ---
 	call_deferred("_emit_progress", 0.65, "Pre-baking regional terrain…")

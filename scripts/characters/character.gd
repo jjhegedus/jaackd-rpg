@@ -38,6 +38,12 @@ enum Controller { UNASSIGNED, PLAYER, WM, AI }
 @export var world_chunk_y: int = 0
 @export var local_pos: Vector3 = Vector3.ZERO
 
+# --- Group membership ---
+# The EntityGroup this entity belongs to. -1 = not yet assigned.
+# Every entity is always in exactly one group; solo entities are in a
+# solo group (size == 1). Set by WorldManifest.ensure_solo_groups().
+@export var group_id: int = -1
+
 # --- Control ---
 @export var controller: Controller = Controller.UNASSIGNED
 @export var controller_id: int = -1  # network peer ID; -1 if AI/unassigned
@@ -46,8 +52,8 @@ enum Controller { UNASSIGNED, PLAYER, WM, AI }
 @export var alive: bool = true
 # peer IDs that have encountered this character in play
 @export var known_by: Array[int] = []
-# default true; WM can lock a character out of player selection
-@export var player_selectable: bool = true
+# default false; must be explicitly set true for adventurers / player-owned entities
+@export var player_selectable: bool = false
 
 # --- Backstory ---
 # Seed-generated text. Shown if backstory_override is empty.

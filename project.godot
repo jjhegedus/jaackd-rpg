@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Log="*res://scripts/utils/log.gd"
 DiskManager="*res://scripts/systems/disk_manager.gd"
 WorldManager="*res://scripts/world/navigation/world_manager.gd"
 NetworkManager="*res://scripts/network/network_manager.gd"

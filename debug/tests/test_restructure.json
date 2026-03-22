@@ -1,0 +1,65 @@
+{
+  "name": "Group restructure — merge and split",
+  "default_timeout_sec": 30,
+  "steps": [
+    {
+      "type": "wait_for",
+      "event": "bridge_ready",
+      "desc": "DebugBridge active"
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "MainMenu",
+      "desc": "Main menu loaded",
+      "timeout_sec": 30
+    },
+    {
+      "type": "cmd",
+      "desc": "Click Play",
+      "payload": {"cmd": "click", "target": "PlayBtn"}
+    },
+    {
+      "type": "check",
+      "event": "screen_ready",
+      "scene": "GameWorld",
+      "panel": "CommandPanel",
+      "desc": "CommandPanel shows 5 solo groups",
+      "fields": {"panel": "CommandPanel", "scene": "GameWorld", "group_count": 5},
+      "timeout_sec": 30
+    },
+    {
+      "type": "cmd",
+      "desc": "Absorb group 1 into selected group 0",
+      "payload": {"cmd": "click", "target": "absorb_0"}
+    },
+    {
+      "type": "check",
+      "event": "screen_ready",
+      "scene": "GameWorld",
+      "panel": "CommandPanel",
+      "desc": "CommandPanel now shows 4 groups after merge",
+      "fields": {"panel": "CommandPanel", "scene": "GameWorld", "group_count": 4},
+      "timeout_sec": 10
+    },
+    {
+      "type": "cmd",
+      "desc": "Split first member back out of merged group",
+      "payload": {"cmd": "click", "target": "split_0"}
+    },
+    {
+      "type": "check",
+      "event": "screen_ready",
+      "scene": "GameWorld",
+      "panel": "CommandPanel",
+      "desc": "CommandPanel back to 5 groups after split",
+      "fields": {"panel": "CommandPanel", "scene": "GameWorld", "group_count": 5},
+      "timeout_sec": 10
+    },
+    {
+      "type": "cmd",
+      "desc": "Quit",
+      "payload": {"cmd": "quit"}
+    }
+  ]
+}

@@ -6,3 +6,10 @@
 /debug/events.jsonl
 /debug/commands.json
 /debug/godot_output.log
+debug.log
+
+# SCons build artifacts (GDExtension compiler cache)
+**/.sconsign.dblite
+
+# Claude Code local session data
+.claude/

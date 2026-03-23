@@ -2,12 +2,13 @@ class_name GameWorld
 extends Node3D
 
 # Root scene for active gameplay.
-# Sets up tactical cameras, registers player entities from the world manifest,
+# Sets up cameras, registers player entities from the world manifest,
 # and drives chunk loading / LOD via the tactical camera's ground position.
 #
 # Camera model:
-#   TAB toggles between full-screen Tactical view (TacticalCamera) and full-screen
-#   Entity view (EntityCamController at eye level of the selected entity).
+#   TAB toggles between Tactical view (2D cartographic map) and Entity view
+#   (EntityCamController at eye level of the selected entity).
+#   TacticalCamera remains active in both modes to keep LOD chunk loading working.
 #   ViewLayout shows a mode indicator label in the top-right corner.
 #   EntityVisuals manages capsule meshes and screen-space labels for all entities.
 
@@ -21,8 +22,9 @@ const TOWN_RADIUS_M  := 80.0    # townspeople scatter radius around start positi
 const ENEMY_ID_BASE  := 10000   # generated enemy IDs start here (above manifest range)
 
 var _lod_manager: LODManager
-var _tactical_cam  # TacticalCamera
+var _tactical_cam  # TacticalCamera — kept active for LOD even in map view
 var _entity_cam    # EntityCamController
+var _tactical_map_view: TacticalMapView
 var _view_layout: ViewLayout
 var _entity_visuals: EntityVisuals
 var _fog_manager: FogOfWarManager
@@ -62,7 +64,11 @@ func _ready() -> void:
 	_setup_command_panel()
 
 	EntityRegistry.position_updated.connect(_on_entity_position_updated)
+	EntityRegistry.position_updated.connect(_tactical_map_view.on_entity_moved)
 	_populate_group_known_chunks()
+
+	# Open in tactical (map) view.
+	_switch_to_tactical()
 
 	if OS.is_debug_build():
 		DebugBridge.screen_ready("GameWorld", "", [])
@@ -97,15 +103,18 @@ func _setup_cameras() -> void:
 	_tactical_cam = load("res://scripts/world/navigation/tactical_camera.gd").new()
 	add_child(_tactical_cam)
 	_tactical_cam.ground_chunk_changed.connect(_on_ground_chunk_changed)
+	_tactical_cam.activate()  # always active for LOD chunk driving
 
 	_entity_cam = load("res://scripts/characters/entity_cam_controller.gd").new()
 	add_child(_entity_cam)
 	_entity_cam.switch_requested.connect(_switch_to_tactical)
 
+	_tactical_map_view = TacticalMapView.new()
+	add_child(_tactical_map_view)
+
 	_view_layout = ViewLayout.new()
 	add_child(_view_layout)
 
-	_tactical_cam.activate()
 	hud.set_camera(_tactical_cam)
 
 
@@ -151,6 +160,8 @@ func _setup_fog() -> void:
 		_fog_manager.load_explored()
 	# Give EntityVisuals a reference so it can query per-entity visibility.
 	_entity_visuals.set_fog_manager(_fog_manager)
+	# Give the 2D map its fog source.
+	_tactical_map_view.set_fog_manager(_fog_manager)
 
 
 func _setup_command_panel() -> void:
@@ -172,6 +183,7 @@ func _switch_to_entity() -> void:
 	_tactical_cam.set_input_enabled(false)
 	_entity_cam.activate()
 	_entity_visuals.set_labels_visible(false)
+	_tactical_map_view.hide()
 	_view_layout.set_mode(ViewLayout.Mode.ENTITY)
 	hud.set_active_view_camera(_entity_cam.get_camera())
 
@@ -181,6 +193,10 @@ func _switch_to_tactical() -> void:
 	_entity_cam.deactivate()
 	_tactical_cam.set_input_enabled(true)
 	_entity_visuals.set_labels_visible(true)
+	var sel_id := EntityRegistry.get_selected_id()
+	if sel_id >= 0:
+		_tactical_map_view.focus_on_entity(EntityRegistry.get_entity_pos(sel_id))
+	_tactical_map_view.show_map()
 	_view_layout.set_mode(ViewLayout.Mode.TACTICAL_FULL)
 	hud.set_active_view_camera(_tactical_cam.get_camera())
 

@@ -278,6 +278,30 @@ func _execute_command(cmd: Dictionary) -> void:
 					"detail": "%d groups for %d characters" % [group_count, char_count]})
 			_ack(cmd_id, true)
 
+		"verify_tactical_map":
+			var maps := get_tree().get_nodes_in_group("tactical_map")
+			if maps.is_empty():
+				_append_event({"type": "tactical_map_verified", "ok": false,
+					"detail": "No node in group 'tactical_map'"})
+				_ack(cmd_id, true)
+				return
+			var tmv: TacticalMapView = maps[0]
+			var chunk_count: int = tmv._chunk_textures.size()
+			var contour_count: int = tmv._chunk_contours.size()
+			var is_visible: bool = tmv.visible
+			var ok := is_visible and chunk_count > 0
+			var detail: String
+			if not is_visible:
+				detail = "TacticalMapView is not visible"
+			elif chunk_count == 0:
+				detail = "No chunks rendered"
+			else:
+				detail = "%d chunks, %d with contours" % [chunk_count, contour_count]
+			_append_event({"type": "tactical_map_verified", "ok": ok,
+				"visible": is_visible, "chunk_count": chunk_count,
+				"contour_count": contour_count, "detail": detail})
+			_ack(cmd_id, true)
+
 		"quit":
 			_ack(cmd_id, true)
 			get_tree().call_deferred("quit")

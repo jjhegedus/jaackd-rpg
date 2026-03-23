@@ -1,0 +1,47 @@
+{
+  "name": "Tactical map — 2D map renders chunks and is visible on game start",
+  "default_timeout_sec": 60,
+  "steps": [
+    {
+      "type": "wait_for",
+      "event": "bridge_ready",
+      "desc": "DebugBridge active"
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "MainMenu",
+      "desc": "Main menu loaded",
+      "timeout_sec": 30
+    },
+    {
+      "type": "cmd",
+      "desc": "Click Play to enter GameWorld",
+      "payload": {"cmd": "click", "target": "PlayBtn"}
+    },
+    {
+      "type": "wait_for",
+      "event": "screen_ready",
+      "scene": "GameWorld",
+      "desc": "Game world ready",
+      "timeout_sec": 90
+    },
+    {
+      "type": "cmd",
+      "desc": "Verify tactical map is visible and has rendered chunks",
+      "payload": {"cmd": "verify_tactical_map"}
+    },
+    {
+      "type": "check",
+      "event": "tactical_map_verified",
+      "fields": {"ok": true},
+      "desc": "Tactical map visible with at least one rendered chunk",
+      "timeout_sec": 10
+    },
+    {
+      "type": "cmd",
+      "desc": "Quit",
+      "payload": {"cmd": "quit"}
+    }
+  ]
+}
